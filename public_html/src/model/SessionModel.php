@@ -1,8 +1,7 @@
 <?php
 
-namespace model;
 
-class LoginModel {
+class SessionModel {
     private $sessionLocation = "LoggedIn";
     private $sessionUsername = "Username";
 
@@ -12,16 +11,10 @@ class LoginModel {
 
     // Checks the credentials, if correct the LoggedIn session is set to true.
     public function doLogin($username, $password) {
-        if($username == "Admin" && $password == "Password")
-        {
-            $_SESSION[$this->sessionLocation] = true;
-            $_SESSION[$this->sessionUsername] = $username;
-            //$_SESSION["httpAgent"] = $_SERVER["HTTP_USER_AGENT"];
-        }
-        else
-        {
-            throw new \Exception;
-        }
+
+        $_SESSION[$this->sessionLocation] = true;
+        $_SESSION[$this->sessionUsername] = $username;
+        //$_SESSION["httpAgent"] = $_SERVER["HTTP_USER_AGENT"];
     }
 
     public function doAutoLogin($username, $token) {
@@ -67,5 +60,16 @@ class LoginModel {
         //{
             return "fsdfsf2uy39fy392f923oif23";
         //}
+    }
+
+    // sb222rf
+    public function setUsernameInputValue ($value) {
+
+        $_SESSION['RegisterValues']['username'] = $value;
+    }
+
+    public function resetUsernameInputValue () {
+
+        $_SESSION['RegisterValues']['username'] = '';
     }
 }

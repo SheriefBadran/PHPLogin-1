@@ -13,6 +13,7 @@ class HTMLView {
     <meta http-equiv='content-type' content='text/html; charset=utf-8' />
 </head>
 <body>
+<h1>PHP Laboration</h1>
 $body
 </body>
 </html>";

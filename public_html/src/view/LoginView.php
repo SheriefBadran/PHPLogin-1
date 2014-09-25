@@ -1,17 +1,41 @@
 <?php
 
-namespace view;
-
 require_once("src/view/MessageView.php");
 
 class LoginView {
-    private $model;
+    private $sessionModel;
     private $messages;
 
-    public function __construct(\model\LoginModel $model)
+    public function __construct(SessionModel $sessionModel)
     {
-        $this->model = $model;
-        $this->messages = new \view\MessageView();
+        $this->sessionModel = $sessionModel;
+        $this->messages = new MessageView();
+    }
+
+    public function getPostedUsername () {
+
+        if (isset($_POST['username'])) {
+            
+            return $_POST["username"];
+        }
+    }
+
+    public function getPostedPassword () {
+
+        if (isset($_POST['password'])) {
+            
+            return $_POST['password'];
+        }
+    }
+
+    public function rememberMe () {
+
+        return isset($_POST["stayLoggedIn"]);
+    }
+
+    public function registerUser() {
+
+        return isset($_GET['registrera']);
     }
 
     // Checks if the user has pressed the login button.
@@ -56,11 +80,11 @@ class LoginView {
     // Renders the page according to the user being logged in or not.
     public function showPage() {
 
-        if($this->model->getLoginStatus() === false || $this->sessionCheck() === false)
+        if($this->sessionModel->getLoginStatus() === false || $this->sessionCheck() === false)
         {
             $username = isset($_POST["username"]) ? $_POST["username"] : "";
             return "
-            <h1>PHPLogin</h1>
+            <a href='?registrera'>Registrera en användare</a>
             <h3>Ej inloggad</h3>
             <form action='?login' method='post' name='loginForm'>
                 <fieldset>
@@ -80,7 +104,7 @@ class LoginView {
         else
         {
             return "<h1>Välkommen!</h1>
-                    <h3>" . $this->model->retriveUsername() . " är inloggad</h3>
+                    <h3>" . $this->sessionModel->retriveUsername() . " är inloggad</h3>
                     <p>" . $this->messages->load() . "</p>
                     <a href='?logout'>Logga ut</a>
                     <p>" . $this->getTime() . "</p>";

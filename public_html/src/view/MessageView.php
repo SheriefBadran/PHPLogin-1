@@ -1,7 +1,5 @@
 <?php
 
-namespace view;
-
 class MessageView {
     private $message = "message";
 

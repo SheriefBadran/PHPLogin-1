@@ -1,7 +1,5 @@
 <?php
 
-namespace view;
-
 class CookieStorageView {
     private $cookieUsername = "username";
     private $cookieToken = "token";
@@ -22,7 +20,8 @@ class CookieStorageView {
 
     // Creating the cookies for automatic login.
     public function autoLoginCookie($username, $token) {
-        $time = time()+60*60*24*30;
+        // $time = time()+60*60*24*30;
+        $time = time()+20;
 
         setcookie('username', $username, $time);
         setcookie('token', $token, $time);
