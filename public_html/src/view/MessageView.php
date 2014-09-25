@@ -2,6 +2,7 @@
 
 class MessageView {
     private $message = "message";
+    private static $regUser = "registeredUser";
 
     // Function for saving a message to the session.
     public function save($string) {
@@ -23,5 +24,10 @@ class MessageView {
         $_SESSION[$this->message] = "";
 
         return $ret;
+    }
+
+    public function saveRegisteredUser ($string) {
+
+        $_SESSION[self::$regUser] = $string;
     }
 }

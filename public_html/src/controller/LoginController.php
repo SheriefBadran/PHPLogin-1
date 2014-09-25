@@ -28,7 +28,14 @@ class LoginController {
         if (!$this->sessionModel->getLoginStatus() && $this->loginView->registerUser()) {
             
             $registerController = new RegisterController();
-            $registerController->runRegisterLogic();
+            $result = $registerController->runRegisterLogic();
+
+            if ($result) {
+                
+                $this->sessionModel->setUsernameInputValue($result);
+                $this->messages->save("Registrering av ny användare lyckades.");
+                header('Location: index.php');
+            }
 
             exit;
         }

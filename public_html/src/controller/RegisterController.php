@@ -1,39 +1,51 @@
 <?php
 require_once(ViewPath.DS.'RegisterView.php');
-require_once(ModelPath.DS.'SessionModel.php');
+require_once(HelperPath.DS.'UserRepository.php');
 
 	class RegisterController {
 
 		private $registerView;
-		private $sessionModel;
+		private $userRepository;
 
 		public function __construct () {
 
 			$this->registerView = new RegisterView();
-			$this->sessionModel = new SessionModel();
-
+			$this->userRepository = new UserRepository();
 		}
 
 		public function runRegisterLogic () {
 
-			$errors = array();
+			$result = array();
 
 			if ($this->registerView->userPressRegisterButton()) {
 				
-				$errors = $this->registerView->validate();
+				$result = $this->registerView->validate();
 
-				// if errors render register form
-				$this->registerView->renderRegisterForm($errors);
+				// If result render register form.
+				if ($result === true) {
+
+					// die('The user '. $this->registerView->getUsername() . ' is registrated!');
+					$this->registerView->resetFormInputFields();
+					return $this->registerView->getUsername();
+				}
+				else {
+
+					$this->registerView->renderRegisterForm($result);
+					$this->registerView->resetFormInputFields();
+					return false;
+				}
 
 				// else render success view.
 
 
-				$this->sessionModel->resetUsernameInputValue();
+
 				$this->registerView->resetFormInputFields();
-				exit;
+				return false;
+				// exit;
 			}
 
-			$this->registerView->renderRegisterForm($errors);
+			$this->registerView->renderRegisterForm($result);
+			$this->registerView->resetFormInputFields();
 		}
 	}
 

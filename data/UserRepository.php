@@ -13,15 +13,35 @@ require_once(HelperPath.DS.'DatabaseAccessModel.php');
 
 				$sql = "SELECT * FROM user WHERE username = ? AND password = ?";
 				$params = array($username, hash('sha256', $password));
-				$query = $db -> prepare($sql);
-				$query -> execute($params);
-				$result = $query -> fetch();
+				$query = $db->prepare($sql);
+				$query->execute($params);
+				$result = $query->fetch();
 
 				return $result ? true : false;
 			}
 			catch (Exeption $e) {
 
 				throw ('Connection error!');
+			}
+		}
+
+		function userExist ($username) {
+
+			try {
+
+				$db = $this->dbFactory->createInstance();
+
+				$sql = "SELECT username FROM user WHERE username = ?";
+				$params = array($username);
+				$query = $db->prepare($sql);
+				$query->execute($params);
+				$result = $query->fetch();
+
+				return $result ? true : false;
+			}
+			catch (Exception $e) {
+
+				throw ('DB Error!');
 			}
 		}
 

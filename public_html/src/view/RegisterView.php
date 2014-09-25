@@ -1,21 +1,26 @@
 <?php
 
+require_once(HelperPath.DS.'UserRepository.php');
 require_once(ModelPath.DS.'SessionModel.php');
+
 	class RegisterView {
 
 		private $mainView;
 		private $sessionModel;
+		private $userRepository;
 
 
 		private static $usernameErrorMessage = "Användarnamnet har för få tecken. Minst 3 tecken.";
 		private static $passwordErrorMessage = "Lösenordet har för få tecken. Minst 6 tecken.";
 		private static $passwordsNotMatchingErrorMessage = "Lösenorden matchar inte.";
 		private static $badCharsErrorMessage = "Användarnamnet innehåller ogiltiga tecken.";
+		private static $userExistErrorMessage = "Användarnamnet är redan upptaget.";
 
 		function __construct () {
 
 			$this->mainView = new HTMLView();
 			$this->sessionModel = new SessionModel();
+			$this->userRepository = new UserRepository();
 		}
 
 		public function getRegisterFormHTML ($usernameErrMsg = '', $passwordErrMsg = '') {
@@ -60,6 +65,11 @@ require_once(ModelPath.DS.'SessionModel.php');
 			// $this->sessionModel->resetUsernameInputValue();
 
 			return $registerHTML;			
+		}
+
+		private function userExist ($username) {
+
+			return $this->userRepository->userExist($username);
 		}
 
 		public function renderRegisterForm (array $errorMessages) {
@@ -137,13 +147,11 @@ require_once(ModelPath.DS.'SessionModel.php');
 			$password = $this->getPassword();
 			$confirmedPassword = $this->getConfirmedPassword();
 
-			// strip_tags
-			// var_dump(trim($username));
-			// var_dump(htmlspecialchars($username));
-			// var_dump(strip_tags($username));
-			// var_dump(strip_tags($username));
-			// var_dump(strpbrk($username, '<>"".') !== false);
-			// die();
+			if ($this->userExist($username)) {
+				
+				$errorMessages['username'] = self::$userExistErrorMessage;
+				$this->sessionModel->setUsernameInputValue($username);
+			}
 
 			if ($username == null || strlen($username) < 3) {
 
@@ -154,27 +162,43 @@ require_once(ModelPath.DS.'SessionModel.php');
 			else if (strpbrk($username, '<>""./') !== false) {
 
 				$errorMessages['username'] = self::$badCharsErrorMessage;
-				$cleanedUsername = strip_tags($username);
-				// $this->sessionModel->setUsernameInputValue($cleanedUsername);
+				$cleanUsername = strip_tags($username);
+				$this->sessionModel->setUsernameInputValue($cleanUsername);
 			}
 
 			if ($password == null || strlen($password) < 6) {
 
+				// TODO: Break this code out in a separate function
 				$errorMessages['password'] = self::$passwordErrorMessage;
-				$this->sessionModel->setUsernameInputValue($username);
+
+				if (strpbrk($username, '<>""./') !== false) {
+					
+					$cleanUsername = strip_tags($username);
+					$this->sessionModel->setUsernameInputValue($cleanUsername);
+				}
+				else {
+
+					$this->sessionModel->setUsernameInputValue($username);
+				}
 			}
 
 			else if ($confirmedPassword !== $password) {
 
+				// TODO: Break this code out in a separate function
 				$errorMessages['password'] = self::$passwordsNotMatchingErrorMessage;
-				$this->sessionModel->setUsernameInputValue($username);
+
+				if (strpbrk($username, '<>""./') !== false) {
+					
+					$cleanUsername = strip_tags($username);
+					$this->sessionModel->setUsernameInputValue($cleanUsername);
+				}
+				else {
+
+					$this->sessionModel->setUsernameInputValue($username);
+				}
 				// return self::$passwordsNotMatchingErrorMessage;
 			}
 
-			if (count($errorMessages) > 0) {
-				
-				// $this->sessionModel->resetUsernameInputValue();
-			}
 
 			return (count($errorMessages) === 0) ? true : $errorMessages;
 		}

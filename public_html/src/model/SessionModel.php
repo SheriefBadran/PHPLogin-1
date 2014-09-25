@@ -72,4 +72,12 @@ class SessionModel {
 
         $_SESSION['RegisterValues']['username'] = '';
     }
+
+    public function getUsernameInputValue () {
+
+        $userNameInputValue = isset($_SESSION['RegisterValues']['username']) ? $_SESSION['RegisterValues']['username'] : '';
+        $this->resetUsernameInputValue();
+
+        return $userNameInputValue;
+    }
 }

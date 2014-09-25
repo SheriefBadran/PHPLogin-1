@@ -83,6 +83,14 @@ class LoginView {
         if($this->sessionModel->getLoginStatus() === false || $this->sessionCheck() === false)
         {
             $username = isset($_POST["username"]) ? $_POST["username"] : "";
+
+            $registeredUser = $this->sessionModel->getUsernameInputValue();
+
+            if ($registeredUser != '') {
+                
+                $username = $registeredUser;
+            }
+
             return "
             <a href='?registrera'>Registrera en användare</a>
             <h3>Ej inloggad</h3>
