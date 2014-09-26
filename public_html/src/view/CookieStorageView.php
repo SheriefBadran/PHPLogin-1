@@ -8,12 +8,24 @@ class CookieStorageView {
     private $cookieCreationDate = "creationDate";
     private $cookieDatesFile = "CookieDates.txt";
 
+    // Eventually throw this away!
     public function getCookieUsername() {
         return $this->cookieUsername;
     }
 
+    // Eventually throw this away!
     public function getCookieToken() {
         return $this->cookieToken;
+    }
+
+    public function getUsername () {
+
+        return $_COOKIE[$this->cookieUsername];
+    }
+
+    public function getUniqueId () {
+
+        return $_COOKIE[$this->cookieToken];
     }
 
     // public function getCookieCreationDate() {
@@ -21,7 +33,7 @@ class CookieStorageView {
     // }
 
     // Creating the cookies for automatic login.
-    public function autoLoginCookie($username, $token, $userRepository) {
+    public function autoLoginCookie($username, $token, UserRepository $userRepository) {
         // $time = time()+60*60*24*30;
         $time = time()+20;
 
@@ -44,11 +56,19 @@ class CookieStorageView {
     }
 
     // Function to check the creation date of the autoLogin cookie
-    public function autoLoginCreationDate($userRepository) {
+    public function autoLoginCreationDate(UserRepository $userRepository, $uniqueId) {
 
-        $username = $_COOKIE[$this->getCookieUsername()];
-        $user = $userRepository->makeUser($username);
-        $cookieExpTime = (int)($userRepository->getCookieExpTime($user->getUniqueId()));
+
+        $username = $this->getUsername();
+
+        try {
+
+            $cookieExpTime = $userRepository->getCookieExpTime($uniqueId);
+        }
+        catch(Exception $e) {
+
+            return false;
+        }
 
         return ($cookieExpTime < time()) ? false : true;
         // $cookieCreationDate = $_COOKIE[$this->getCookieCreationDate()];

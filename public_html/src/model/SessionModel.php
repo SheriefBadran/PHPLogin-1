@@ -10,25 +10,11 @@ class SessionModel {
     }
 
     // Checks the credentials, if correct the LoggedIn session is set to true.
-    public function doLogin($username, $password) {
+    public function doLogin($username) {
 
         $_SESSION[$this->sessionLocation] = true;
         $_SESSION[$this->sessionUsername] = $username;
         //$_SESSION["httpAgent"] = $_SERVER["HTTP_USER_AGENT"];
-    }
-
-    public function doAutoLogin($username, $token) {
-
-        if ($username == "Admin" && $this->retriveToken($username) == $token)
-        {
-            // Automatic login.
-            $_SESSION[$this->sessionLocation] = true;
-            $_SESSION[$this->sessionUsername] = $username;
-        }
-        else
-        {
-            throw new \Exception;
-        }
     }
 
     // When a user wants to logout, the session is returned to be null.

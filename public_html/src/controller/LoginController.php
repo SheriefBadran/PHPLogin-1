@@ -25,6 +25,16 @@ class LoginController {
 
     public function runLoginLogic() {
 
+        // TODO: Break this out to the SessionModel.
+        if ($_SESSION["httpAgent"] !== $_SERVER["HTTP_USER_AGENT"]) {
+            
+            $this->autoLogin->autoLoginCookieRemove();
+            $this->sessionModel->doLogout();
+            unset($_SESSION["httpAgent"]);
+            header('Location: index.php');
+            exit;
+        }
+
         if (!$this->sessionModel->getLoginStatus() && $this->loginView->registerUser()) {
             
             $registerController = new RegisterController();
@@ -43,19 +53,23 @@ class LoginController {
         // LOGIN/RELOAD WITH COOKIES ONLY
         if($this->sessionModel->getLoginStatus() == false && isset($_COOKIE[$this->autoLogin->getCookieUsername()]) && isset($_COOKIE[$this->autoLogin->getCookieToken()]))
         {
+            $username = $this->autoLogin->getUsername();
+            $uniqueId = $this->autoLogin->getUniqueId();
+            $user = $this->userRepository->makeUser($username, $uniqueId);
 
-            if ($this->autoLogin->autoLoginCreationDate($this->userRepository))
+            if ($user && $this->autoLogin->autoLoginCreationDate($this->userRepository, $uniqueId))
             {
                 try
                 {
                     // Checks the username and password in the model, to see that it exists.
-                    $this->sessionModel->doAutoLogin($_COOKIE[$this->autoLogin->getCookieUsername()], $_COOKIE[$this->autoLogin->getCookieToken()]);
+                    $this->sessionModel->doLogin($username);
                     $this->messages->save("Inloggning lyckades via cookies");
                     header('Location: index.php');
                     exit;
                 }
                 catch (\Exception $e)
                 {
+
                     $this->messages->save("Felaktig information i cookie");
                     $this->autoLogin->autoLoginCookieRemove();
                 }
@@ -145,7 +159,7 @@ class LoginController {
             // TODO: Create a user factory.
 
 
-            $this->sessionModel->doLogin($username, $password);
+            $this->sessionModel->doLogin($username);
             return true;
         }
         else {

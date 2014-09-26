@@ -9,10 +9,10 @@ require_once(ModelPath.DS.'UserModel.php');
 		private static $childTblName = 'cookie';
 		private static $userId = 'userId';
 		private static $uniqueId = 'uniqueId';
+		private static $uniqueIdLength = 20;
 		private static $username = 'username';
 		private static $password = 'password';
 		private static $expDate = 'rememberme';
-		private static $hashType = 'sha256';
 
 
 		function authenticateUser ($username, $password) {
@@ -22,7 +22,7 @@ require_once(ModelPath.DS.'UserModel.php');
 				$db = $this->dbFactory->createInstance();
 
 				$sql = "SELECT * FROM user WHERE " . self::$username . " = ? AND " . self::$password . " = ?";
-				$params = array($username, hash(self::$hashType, $password));
+				$params = array($username, $password);
 				$query = $db->prepare($sql);
 				$query->execute($params);
 				$result = $query->fetch();
@@ -35,33 +35,71 @@ require_once(ModelPath.DS.'UserModel.php');
 			}
 		}
 
-		function makeUser ($username) {
+		function makeUser ($username, $uniqueId = '') {
 
-			try {
+			if ($uniqueId !== '' && !is_string($uniqueId) && strlen($uniqueId) !== self::$uniqueIdLength) {
+				
+				throw new \Exception('Parameter has to be a unique id with type string and length' . 
+					(string)(self::$uniqueIdLength));
+			}
 
-				$db = $this->dbFactory->createInstance();
+			if ($uniqueId !== '') {
+				
+				try {
 
-				$sql = "SELECT * FROM " . self::$tblName . " WHERE " . self::$username . " = ?";
-				$params = array($username);
-				$query = $db->prepare($sql);
-				$query->execute($params);
-				$result = $query->fetch();
+					$db = $this->dbFactory->createInstance();
 
-				if ($result) {
-					
-					$user = new UserModel($result[self::$uniqueId], $result[self::$username], $result[self::$password]);
-					return $user;
+					$sql = "SELECT * FROM " . self::$tblName . " WHERE " . self::$username . " = ?";
+					$sql .= " AND " . self::$uniqueId . " = ?";
+					$params = array($username, $uniqueId);
+					$query = $db->prepare($sql);
+					$query->execute($params);
+					$result = $query->fetch();
+
+					if ($result) {
+						
+						$user = new UserModel($result[self::$uniqueId], $result[self::$username], $result[self::$password]);
+						return $user;
+					}
+					else {
+
+						// if there was no result, return null instead of user object.
+						return null;
+					}
 				}
-				else {
+				catch (PDOException $e) {
 
-					// if there was no result, return null instead of user object.
-					return null;
+					throw new \Exception('DB Error!');
 				}
 			}
-			catch (PDOException $e) {
+			else {
 
-				throw ('DB Error!');
-			}	
+				try {
+
+					$db = $this->dbFactory->createInstance();
+
+					$sql = "SELECT * FROM " . self::$tblName . " WHERE " . self::$username . " = ?";
+					$params = array($username);
+					$query = $db->prepare($sql);
+					$query->execute($params);
+					$result = $query->fetch();
+
+					if ($result) {
+						
+						$user = new UserModel($result[self::$uniqueId], $result[self::$username], $result[self::$password]);
+						return $user;
+					}
+					else {
+
+						// if there was no result, return null instead of user object.
+						return null;
+					}
+				}
+				catch (PDOException $e) {
+
+					throw ('DB Error!');
+				}
+			}
 		}
 
 		function userExist ($username) {
@@ -127,6 +165,14 @@ require_once(ModelPath.DS.'UserModel.php');
 
 		function getCookieExpTime ($uniqueId) {
 
+			if (!is_string($uniqueId) && strlen($uniqueId) !== self::$uniqueIdLength) {
+
+				throw new \Exception('Parameter has to be a unique id with type string and length' . 
+					(string)(self::$uniqueIdLength));
+			}
+
+			$expTime;
+
 			try {
 
 				$db = $this->dbFactory->createInstance();
@@ -138,11 +184,16 @@ require_once(ModelPath.DS.'UserModel.php');
 				$query->execute($params);
 				$result = $query->fetch();
 
-				return $result;
+				if ($result) {
+
+					$expTime = array_shift($result);
+				}
+
+				return $result ? $expTime : $result;
 			}
 			catch (PDOException $e) {
 
-				throw ('DB Error!');
+				throw new \Exception('DB Error!');
 			}
 		}
 

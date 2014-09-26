@@ -24,7 +24,7 @@ class LoginView {
 
         if (isset($_POST['password'])) {
             
-            return $_POST['password'];
+            return hash("sha256" ,$_POST['password']);
         }
     }
 
@@ -60,12 +60,6 @@ class LoginView {
         {
             return false;
         }
-    }
-
-    // Function for retrieving current time, date and year in Swedish.
-    public function getTime() {
-        setlocale(LC_ALL,"sv_SE.UTF8");
-        return strftime("%A, den %d %B år %Y. Klockan är [%X].");
     }
 
     public function sessionCheck() {
@@ -106,16 +100,14 @@ class LoginView {
                     <input type='checkbox' name='stayLoggedIn' />
                     <input type='submit' value='Logga in' name='loginButton' />
                  </fieldset>
-            </form>
-            <p>" . $this->getTime() . "</p>";
+            </form>";
         }
         else
         {
             return "<h1>Välkommen!</h1>
                     <h3>" . $this->sessionModel->retriveUsername() . " är inloggad</h3>
                     <p>" . $this->messages->load() . "</p>
-                    <a href='?logout'>Logga ut</a>
-                    <p>" . $this->getTime() . "</p>";
+                    <a href='?logout'>Logga ut</a>";
         }
     }
 }
