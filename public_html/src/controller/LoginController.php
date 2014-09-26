@@ -40,14 +40,11 @@ class LoginController {
             exit;
         }
 
-        // This is a string value (creationDate) that is an undifined index on line 37 when running UC 3.5
-        // var_dump($this->autoLogin->getCookieCreationDate());
-
         // LOGIN/RELOAD WITH COOKIES ONLY
-
         if($this->sessionModel->getLoginStatus() == false && isset($_COOKIE[$this->autoLogin->getCookieUsername()]) && isset($_COOKIE[$this->autoLogin->getCookieToken()]))
         {
-            if ($this->autoLogin->autoLoginCreationDate($_COOKIE[$this->autoLogin->getCookieUsername()], $_COOKIE[$this->autoLogin->getCookieCreationDate()]) == true)
+
+            if ($this->autoLogin->autoLoginCreationDate($this->userRepository))
             {
                 try
                 {
@@ -105,7 +102,7 @@ class LoginController {
                         if ($user) {
 
                             $this->autoLogin->autoLoginCookie($username, $user->getUniqueId(), $this->userRepository);
-                            
+
                             $this->messages->save("Inloggning lyckades och vi kommer ihåg dig nästa gång");
                             header('Location: index.php');
                             exit;   

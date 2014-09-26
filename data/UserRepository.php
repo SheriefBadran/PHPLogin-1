@@ -29,9 +29,9 @@ require_once(ModelPath.DS.'UserModel.php');
 
 				return $result ? true : false;
 			}
-			catch (Exeption $e) {
+			catch (PDOException $e) {
 
-				throw ('Connection error!');
+				throw ('DB Error!');
 			}
 		}
 
@@ -58,9 +58,9 @@ require_once(ModelPath.DS.'UserModel.php');
 					return null;
 				}
 			}
-			catch (Exeption $e) {
+			catch (PDOException $e) {
 
-				throw ('Connection error!');
+				throw ('DB Error!');
 			}	
 		}
 
@@ -78,7 +78,7 @@ require_once(ModelPath.DS.'UserModel.php');
 
 				return $result ? true : false;
 			}
-			catch (Exception $e) {
+			catch (PDOException $e) {
 
 				throw ('DB Error!');
 			}
@@ -117,17 +117,33 @@ require_once(ModelPath.DS.'UserModel.php');
 				$sql .= "WHERE " . self::$uniqueId . "= ?";
 				$params = array($time, $uniqueId);
 				$query = $db->prepare($sql);
-				$query -> execute($params);
+				$query->execute($params);
 			}
-			catch (Exeption $e) {
+			catch (PDOException $e) {
 
-				throw ('Connection error!');
+				throw ('DB Error!');
 			}	
 		}
 
-		function getCookieExpTime () {
+		function getCookieExpTime ($uniqueId) {
 
+			try {
 
+				$db = $this->dbFactory->createInstance();
+
+				$sql = "SELECT " . self::$expDate . " FROM " . self::$childTblName;
+				$sql .= " WHERE " . self::$uniqueId . " = ?";
+				$params = array($uniqueId);
+				$query = $db->prepare($sql);
+				$query->execute($params);
+				$result = $query->fetch();
+
+				return $result;
+			}
+			catch (PDOException $e) {
+
+				throw ('DB Error!');
+			}
 		}
 
 		function generateUniqueId () {
