@@ -1,5 +1,7 @@
 <?php
 
+require_once(HelperPath.DS.'UserRepository.php');
+
 class CookieStorageView {
     private $cookieUsername = "username";
     private $cookieToken = "token";
@@ -19,7 +21,7 @@ class CookieStorageView {
     }
 
     // Creating the cookies for automatic login.
-    public function autoLoginCookie($username, $token) {
+    public function autoLoginCookie($username, $token, $userRepository) {
         // $time = time()+60*60*24*30;
         $time = time()+20;
 
@@ -28,6 +30,7 @@ class CookieStorageView {
         setcookie('creationDate', $time, $time);
 
         // Saves the creation date of the cookies, to avoid manipulation.
+        $userRepository->saveCookieExpTime($token, $time);
         $fp = fopen($this->cookieDatesFile, 'a');
         fwrite($fp, $username . $time . PHP_EOL);
     }

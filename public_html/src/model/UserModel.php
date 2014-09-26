@@ -14,7 +14,7 @@
 			$this->password = $password;
 		}
 
-		public function getUnique () {
+		public function getUniqueId () {
 
 			return $this->uniqueId;
 		}
@@ -22,10 +22,5 @@
 		public function getUsername () {
 
 			return $this->username;
-		}
-
-		public function getPassword () {
-
-			return $this->password;
 		}
 	}

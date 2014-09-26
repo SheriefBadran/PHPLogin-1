@@ -44,6 +44,7 @@ class LoginController {
         // var_dump($this->autoLogin->getCookieCreationDate());
 
         // LOGIN/RELOAD WITH COOKIES ONLY
+
         if($this->sessionModel->getLoginStatus() == false && isset($_COOKIE[$this->autoLogin->getCookieUsername()]) && isset($_COOKIE[$this->autoLogin->getCookieToken()]))
         {
             if ($this->autoLogin->autoLoginCreationDate($_COOKIE[$this->autoLogin->getCookieUsername()], $_COOKIE[$this->autoLogin->getCookieCreationDate()]) == true)
@@ -69,14 +70,16 @@ class LoginController {
             }
         }
 
+        $username = $this->loginView->getPostedUsername();
+        $password = $this->loginView->getPostedPassword();
         // If a user tries to login, the input is checked and validated.
         if($this->loginView->onClickLogin())
         {
-            if ($this->loginView->getPostedUsername() == "")
+            if ($username == "")
             {
                 $this->messages->save("Användarnamn saknas");
             }
-            elseif ($this->loginView->getPostedPassword() == "")
+            elseif ($password == "")
             {
                 $this->messages->save("Lösenord saknas");
             }
@@ -92,12 +95,21 @@ class LoginController {
                     $isAuthenticated = $this->authenticateUser();
 
                     // If the user wanted to be remembered a cookie with a hashed password is generated.
-                    if ($this->loginView->rememberMe())
+                    if ($this->loginView->rememberMe() && $isAuthenticated)
                     {
-                        $this->autoLogin->autoLoginCookie($this->loginView->getPostedUsername(), $this->sessionModel->retriveToken($this->loginView->getPostedUsername()));
-                        $this->messages->save("Inloggning lyckades och vi kommer ihåg dig nästa gång");
-                        header('Location: index.php');
-                        exit;
+                        // $token = $this->sessionModel->retriveToken($username);
+                        // $this->autoLogin->autoLoginCookie($username, $token);
+
+                        $user = $this->userRepository->makeUser($username);
+
+                        if ($user) {
+
+                            $this->autoLogin->autoLoginCookie($username, $user->getUniqueId(), $this->userRepository);
+                            
+                            $this->messages->save("Inloggning lyckades och vi kommer ihåg dig nästa gång");
+                            header('Location: index.php');
+                            exit;   
+                        }
                     }
 
                     $this->messages->save("Inloggning lyckades");
@@ -132,6 +144,10 @@ class LoginController {
 
         if ($isAuthenticated) {
             
+            // Retrieve the authenticated a user object
+            // TODO: Create a user factory.
+
+
             $this->sessionModel->doLogin($username, $password);
             return true;
         }

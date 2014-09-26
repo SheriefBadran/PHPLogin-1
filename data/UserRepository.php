@@ -1,8 +1,18 @@
 <?php
 
 require_once(HelperPath.DS.'DatabaseAccessModel.php');
+require_once(ModelPath.DS.'UserModel.php');
 
 	class UserRepository extends DatabaseAccessModel {
+
+		private static $tblName = 'user';
+		private static $childTblName = 'cookie';
+		private static $userId = 'userId';
+		private static $uniqueId = 'uniqueId';
+		private static $username = 'username';
+		private static $password = 'password';
+		private static $expDate = 'rememberme';
+		private static $hashType = 'sha256';
 
 
 		function authenticateUser ($username, $password) {
@@ -11,8 +21,8 @@ require_once(HelperPath.DS.'DatabaseAccessModel.php');
 
 				$db = $this->dbFactory->createInstance();
 
-				$sql = "SELECT * FROM user WHERE username = ? AND password = ?";
-				$params = array($username, hash('sha256', $password));
+				$sql = "SELECT * FROM user WHERE " . self::$username . " = ? AND " . self::$password . " = ?";
+				$params = array($username, hash(self::$hashType, $password));
 				$query = $db->prepare($sql);
 				$query->execute($params);
 				$result = $query->fetch();
@@ -25,13 +35,42 @@ require_once(HelperPath.DS.'DatabaseAccessModel.php');
 			}
 		}
 
+		function makeUser ($username) {
+
+			try {
+
+				$db = $this->dbFactory->createInstance();
+
+				$sql = "SELECT * FROM " . self::$tblName . " WHERE " . self::$username . " = ?";
+				$params = array($username);
+				$query = $db->prepare($sql);
+				$query->execute($params);
+				$result = $query->fetch();
+
+				if ($result) {
+					
+					$user = new UserModel($result[self::$uniqueId], $result[self::$username], $result[self::$password]);
+					return $user;
+				}
+				else {
+
+					// if there was no result, return null instead of user object.
+					return null;
+				}
+			}
+			catch (Exeption $e) {
+
+				throw ('Connection error!');
+			}	
+		}
+
 		function userExist ($username) {
 
 			try {
 
 				$db = $this->dbFactory->createInstance();
 
-				$sql = "SELECT username FROM user WHERE username = ?";
+				$sql = "SELECT " . self::$username . " FROM " . self::$tblName . " WHERE " . self::$username . " = ?";
 				$params = array($username);
 				$query = $db->prepare($sql);
 				$query->execute($params);
@@ -58,12 +97,37 @@ require_once(HelperPath.DS.'DatabaseAccessModel.php');
 			// 	$query = $db->prepare($sql);
 			// 	$query -> execute($params);
 
+			// Also create a cookie row belonging to the user (identified by uniqueId).
 
 			// }
 			// catch (Exeption $e) {
 
 			// 	throw ('Connection error!');
 			// }
+		}
+
+		function saveCookieExpTime ($uniqueId, $time) {
+
+			try {
+
+				$db = $this->dbFactory->createInstance();
+
+				$sql = "UPDATE " . self::$childTblName . " SET ";
+				$sql .= self::$expDate . " = ?";
+				$sql .= "WHERE " . self::$uniqueId . "= ?";
+				$params = array($time, $uniqueId);
+				$query = $db->prepare($sql);
+				$query -> execute($params);
+			}
+			catch (Exeption $e) {
+
+				throw ('Connection error!');
+			}	
+		}
+
+		function getCookieExpTime () {
+
+
 		}
 
 		function generateUniqueId () {
