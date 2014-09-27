@@ -24,7 +24,13 @@ require_once(HelperPath.DS.'UserRepository.php');
 				// If result render register form.
 				if ($result === true) {
 
-					// die('The user '. $this->registerView->getUsername() . ' is registrated!');
+					$uniqueId = $this->userRepository->generateUniqueId();
+					$username = $this->registerView->getUsername();
+					$password = $this->registerView->getPassword();
+
+					$newUser = $this->userRepository->makeUser($uniqueId, $username, $password);
+					$this->userRepository->createUser($newUser);
+					
 					$this->registerView->resetFormInputFields();
 					return $this->registerView->getUsername();
 				}

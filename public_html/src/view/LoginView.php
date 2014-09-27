@@ -24,7 +24,7 @@ class LoginView {
 
         if (isset($_POST['password'])) {
             
-            return hash("sha256" ,$_POST['password']);
+            return $_POST['password'] === '' ? '' : hash("sha256" ,$_POST['password']);
         }
     }
 

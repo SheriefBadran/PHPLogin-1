@@ -55,7 +55,7 @@ class LoginController {
         {
             $username = $this->autoLogin->getUsername();
             $uniqueId = $this->autoLogin->getUniqueId();
-            $user = $this->userRepository->makeUser($username, $uniqueId);
+            $user = $this->userRepository->getUser($username, $uniqueId);
 
             if ($user && $this->autoLogin->autoLoginCreationDate($this->userRepository, $uniqueId))
             {
@@ -99,8 +99,8 @@ class LoginController {
                 try
                 {
                     // Checks the username and password in the sessionModel, to see that it exists.
-                    $uniqueId = $this->userRepository->generateUniqueId();
-                    $user = new UserModel($uniqueId, 'Admin', hash('sha256', 'Password'));
+                    // $uniqueId = $this->userRepository->generateUniqueId();
+                    // $user = new UserModel($uniqueId, 'Admin', hash('sha256', 'Password'));
 
                     // $this->userRepository->createUser($user);
                     $isAuthenticated = $this->authenticateUser();
@@ -111,7 +111,7 @@ class LoginController {
                         // $token = $this->sessionModel->retriveToken($username);
                         // $this->autoLogin->autoLoginCookie($username, $token);
 
-                        $user = $this->userRepository->makeUser($username);
+                        $user = $this->userRepository->getUser($username);
 
                         if ($user) {
 

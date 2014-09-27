@@ -13,10 +13,10 @@ if(!isset($_SESSION["httpAgent"]))
     $_SESSION["httpAgent"] = $_SERVER["HTTP_USER_AGENT"];
 }
 
-if (!isset($_SESSION['LoginValues'])) {
+// if (!isset($_SESSION['LoginValues'])) {
 	
-	$_SESSION['RegisterValues']['username'] = '';
-}
+// 	$_SESSION['RegisterValues']['username'] = '';
+// }
 
 $mainView = new HTMLView();
 $loginController = new LoginController();

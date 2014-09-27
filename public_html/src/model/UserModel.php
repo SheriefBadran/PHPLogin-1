@@ -23,4 +23,9 @@
 
 			return $this->username;
 		}
+
+		public function getPassword () {
+
+			return $this->password;
+		}
 	}

@@ -40,6 +40,8 @@ require_once(ModelPath.DS.'SessionModel.php');
 				$passwordResponse = '<p>' . $passwordErrMsg . '</p>';
 			}
 
+			$usernameInputValue = $this->sessionModel->getUsernameInputValue();
+
 			$registerHTML = 
 			'<a href="?login">Tillbaka</a>' .
 			'<h2>Ej Inloggad, Registrerar användare</h2>' .
@@ -50,7 +52,7 @@ require_once(ModelPath.DS.'SessionModel.php');
 					$usernameResponse .
 					$passwordResponse .
 					'<label for="username">Användarnamn : </label>' .
-					'<input type="text" name="username" value="' . $_SESSION['RegisterValues']['username'] . '" maxlength="30" id="username" /> ' .
+					'<input type="text" name="username" value="' . $usernameInputValue . '" maxlength="30" id="username" /> ' .
 
 					'<label for="password">Lösenord : </label>' .
 					'<input type="password" name="password" maxlength="30" id="password" /> ' .
@@ -119,15 +121,17 @@ require_once(ModelPath.DS.'SessionModel.php');
 			// Is called from LoginController
 			if (isset($_POST['password'])) {
 				
-				return $_POST['password'];
+				return ($_POST['password'] == null || strlen($_POST['password']) < 6) ? '' :
+						hash('sha256', $_POST['password']);
 			}
 		}
 
-		public function getConfirmedPassword () {
+		protected function getConfirmedPassword () {
 
 			if (isset($_POST['confirmpassword'])) {
 				
-				return $_POST['confirmpassword'];
+				return ($_POST['confirmpassword'] == null || strlen($_POST['confirmpassword']) < 6) ? '' :
+						hash('sha256', $_POST['confirmpassword']);
 			}
 		}
 
@@ -166,7 +170,8 @@ require_once(ModelPath.DS.'SessionModel.php');
 				$this->sessionModel->setUsernameInputValue($cleanUsername);
 			}
 
-			if ($password == null || strlen($password) < 6) {
+			// If password is less than 6 chars, it is converted to empty string.
+			if ($password === '') {
 
 				// TODO: Break this code out in a separate function
 				$errorMessages['password'] = self::$passwordErrorMessage;

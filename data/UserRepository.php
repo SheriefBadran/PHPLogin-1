@@ -35,7 +35,14 @@ require_once(ModelPath.DS.'UserModel.php');
 			}
 		}
 
-		function makeUser ($username, $uniqueId = '') {
+		function makeUser ($uniqueId, $username, $password) {
+
+			$user = new UserModel($uniqueId, $username, $password);
+
+			return $user;
+		}
+
+		function getUser ($username, $uniqueId = '') {
 
 			if ($uniqueId !== '' && !is_string($uniqueId) && strlen($uniqueId) !== self::$uniqueIdLength) {
 				
@@ -124,24 +131,33 @@ require_once(ModelPath.DS.'UserModel.php');
 
 		function createUser (UserModel $user) {
 
-			// This works for insert!!
+			try {
 
-			// try {
+				// I could write a SPROC instead, and assure that the uniqueId and username does not already exist in either
+				// the user table or the cookie table prior to insert.
 
-			// 	$db = $this->dbFactory->createInstance();
+				$db = $this->dbFactory->createInstance();
 
-			// 	$sql = "INSERT INTO user (uniqueId, username, password) VALUES (?, ?, ?)";
-			// 	$params = array($user->getUnique(), $user->getUsername(), $user->getPassword());
-			// 	$query = $db->prepare($sql);
-			// 	$query -> execute($params);
+				$sql = "INSERT INTO " . self::$tblName;
+				$sql .= " (" . self::$uniqueId . ", " . self::$username . ", " . self::$password . ") VALUES (?, ?, ?)";
+				$params = array($user->getUniqueId(), $user->getUsername(), $user->getPassword());
+				$query = $db->prepare($sql);
+				$query -> execute($params);				
 
-			// Also create a cookie row belonging to the user (identified by uniqueId).
+				// Also create a cookie row belonging to the user (identified by uniqueId).
+				// In a sproc I have to make sure that the first statement is executed successfully before the second is.
+				// If the second statement is not executed successfully, make a rollback and throw an exception.
+				$sql = "INSERT INTO " . self::$childTblName;
+				$sql .= " (" . self::$uniqueId . ") VALUES (?)";
+				$params = array($user->getUniqueId());
+				$query = $db->prepare($sql);
+				$query -> execute($params);
 
-			// }
-			// catch (Exeption $e) {
+			}
+			catch (Exeption $e) {
 
-			// 	throw ('Connection error!');
-			// }
+				throw ('Connection error!');
+			}
 		}
 
 		function saveCookieExpTime ($uniqueId, $time) {
@@ -197,6 +213,7 @@ require_once(ModelPath.DS.'UserModel.php');
 			}
 		}
 
+		// TODO: Maybe move this to the UserModel?
 		function generateUniqueId () {
 
 		    $alphabet = "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ0123456789";
