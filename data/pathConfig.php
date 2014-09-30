@@ -22,6 +22,7 @@
 
 	// Database factory for db-type instances.
 	require_once(HelperPath.DS.'config.php');
+	require_once(HelperPath.DS.'Strings.php');
 	require_once(HelperPath.DS.'interfaces/iFactory.php');
 	require_once(HelperPath.DS.'db/DB_Base_Factory.php');
 	require_once(HelperPath.DS.'db/DB_Factory_PDO.php');
@@ -43,7 +44,6 @@
 	require_once(ModelPath.DS.'SessionModel.php');
 
 	// REQUIRE VIEWS
-	require_once(ViewPath.DS.'MessageView.php');
 	require_once(ViewPath.DS.'LoginView.php');
 	require_once(ViewPath.DS.'CookieStorageView.php');
 	require_once(ViewPath.DS.'RegisterView.php');

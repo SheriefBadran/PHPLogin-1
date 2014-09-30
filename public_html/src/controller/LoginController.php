@@ -3,7 +3,6 @@
 require_once(HelperPath.DS.'UserRepository.php');
 require_once(ModelPath.DS.'SessionModel.php');
 require_once(ViewPath.DS.'LoginView.php');
-require_once(ViewPath.DS.'MessageView.php');
 require_once(ViewPath.DS.'CookieStorageView.php');
 
 class LoginController {
@@ -11,7 +10,6 @@ class LoginController {
     private $userRepository;
     private $sessionModel;
     private $view;
-    private $messages;
     private $autoLogin;
 
     // Constructor, connects all the layers
@@ -19,23 +17,20 @@ class LoginController {
         $this->sessionModel = new SessionModel();
         $this->userRepository =  new UserRepository();
         $this->loginView = new LoginView($this->sessionModel);
-        $this->messages = new MessageView();
         $this->autoLogin = new CookieStorageView();
     }
 
     public function runLoginLogic() {
 
         // TODO: Break this out to the SessionModel.
-        if ($_SESSION["httpAgent"] !== $_SERVER["HTTP_USER_AGENT"]) {
+        if ($this->sessionModel->sessionStolen()) {
             
             $this->autoLogin->autoLoginCookieRemove();
-            $this->sessionModel->doLogout();
-            unset($_SESSION["httpAgent"]);
-            header('Location: index.php');
+            $this->sessionModel->throwOutUser($this->autoLogin, false);
             exit;
         }
 
-        if (!$this->sessionModel->getLoginStatus() && $this->loginView->registerUser()) {
+        if (!$this->sessionModel->isLoggedIn() && $this->loginView->registerUser()) {
             
             $registerController = new RegisterController();
             $result = $registerController->runRegisterLogic();
@@ -43,103 +38,67 @@ class LoginController {
             if ($result) {
                 
                 $this->sessionModel->setUsernameInputValue($result);
-                $this->messages->save("Registrering av ny användare lyckades.");
-                header('Location: index.php');
+                $this->loginView->redirectToRegisterSuccess();
             }
 
             exit;
         }
 
         // LOGIN/RELOAD WITH COOKIES ONLY
-        if($this->sessionModel->getLoginStatus() == false && isset($_COOKIE[$this->autoLogin->getCookieUsername()]) && isset($_COOKIE[$this->autoLogin->getCookieToken()]))
+        if(!$this->sessionModel->isLoggedIn() && $this->autoLogin->autoLoginApproved())
         {
+
             $username = $this->autoLogin->getUsername();
             $uniqueId = $this->autoLogin->getUniqueId();
             $user = $this->userRepository->getUser($username, $uniqueId);
 
             if ($user && $this->autoLogin->autoLoginCreationDate($this->userRepository, $uniqueId))
             {
-                try
-                {
-                    // Checks the username and password in the model, to see that it exists.
-                    $this->sessionModel->doLogin($username);
-                    $this->messages->save("Inloggning lyckades via cookies");
-                    header('Location: index.php');
-                    exit;
-                }
-                catch (\Exception $e)
-                {
 
-                    $this->messages->save("Felaktig information i cookie");
-                    $this->autoLogin->autoLoginCookieRemove();
-                }
+                $this->loginView->redirectToMemberArea($this->autoLogin);
+                exit;
             }
             else
             {
-                $this->messages->save("Felaktig information i cookie");
-                $this->autoLogin->autoLoginCookieRemove();
+
+                $this->loginView->throwOutUser($this->autoLogin, true);
             }
         }
 
         $username = $this->loginView->getPostedUsername();
         $password = $this->loginView->getPostedPassword();
         // If a user tries to login, the input is checked and validated.
-        if($this->loginView->onClickLogin())
-        {
-            if ($username == "")
+        if($this->loginView->onClickLogin() && $this->loginView->validates())
+        {                
+            try
             {
-                $this->messages->save("Användarnamn saknas");
-            }
-            elseif ($password == "")
-            {
-                $this->messages->save("Lösenord saknas");
-            }
-            else
-            {
-                try
-                {
-                    // Checks the username and password in the sessionModel, to see that it exists.
-                    // $uniqueId = $this->userRepository->generateUniqueId();
-                    // $user = new UserModel($uniqueId, 'Admin', hash('sha256', 'Password'));
 
-                    // $this->userRepository->createUser($user);
-                    $isAuthenticated = $this->authenticateUser();
+                $user = $this->authenticateUser() ? $this->userRepository->getUser($username) : false;
 
-                    // If the user wanted to be remembered a cookie with a hashed password is generated.
-                    if ($this->loginView->rememberMe() && $isAuthenticated)
-                    {
-                        // $token = $this->sessionModel->retriveToken($username);
-                        // $this->autoLogin->autoLoginCookie($username, $token);
+                if ($user && $this->loginView->rememberMe()) {
 
-                        $user = $this->userRepository->getUser($username);
-
-                        if ($user) {
-
-                            $this->autoLogin->autoLoginCookie($username, $user->getUniqueId(), $this->userRepository);
-
-                            $this->messages->save("Inloggning lyckades och vi kommer ihåg dig nästa gång");
-                            header('Location: index.php');
-                            exit;   
-                        }
-                    }
-
-                    $this->messages->save("Inloggning lyckades");
-                    header('Location: index.php');
-                    exit;
+                    $this->autoLogin->autoLoginCookie($username, $user->getUniqueId(), $this->userRepository);
+                    $this->loginView->redirectToMemberArea($this->autoLogin, true);
                 }
-                catch (\Exception $e)
-                {
-                    $this->messages->save("Felaktigt användarnamn och/eller lösenord");
+                else {
+
+                    $this->loginView->redirectToMemberArea($this->autoLogin, false);
                 }
+
+                exit;
+            }
+            catch (\Exception $e)
+            {
+
+                $this->loginView->saveAuthErrorMsg();
             }
         }
         // If a user tries to logout, the session is returned to null.
         elseif ($this->loginView->onClickLogout())
         {
+
             $this->autoLogin->autoLoginCookieRemove();
-            $this->sessionModel->doLogout();
-            $this->messages->save("Du har nu loggat ut");
-            header('Location: index.php');
+            $this->loginView->doLogout();
             exit;
         }
 
@@ -155,10 +114,6 @@ class LoginController {
 
         if ($isAuthenticated) {
             
-            // Retrieve the authenticated a user object
-            // TODO: Create a user factory.
-
-
             $this->sessionModel->doLogin($username);
             return true;
         }

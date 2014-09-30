@@ -15,6 +15,16 @@ require_once(ModelPath.DS.'SessionModel.php');
 		private static $passwordsNotMatchingErrorMessage = "Lösenorden matchar inte.";
 		private static $badCharsErrorMessage = "Användarnamnet innehåller ogiltiga tecken.";
 		private static $userExistErrorMessage = "Användarnamnet är redan upptaget.";
+		private static $username = 'username';
+		private static $password = 'password';
+		private static $confirmpassword = 'confirmpassword';
+		private static $hashType = 'sha256';
+		private static $postSubmitString = 'submit';
+		private static $invalidChars = '<>""./';
+		private static $loginValuesSessionIndex = 'LoginValues';
+
+
+		private static $emptyString = '';
 
 		function __construct () {
 
@@ -26,16 +36,16 @@ require_once(ModelPath.DS.'SessionModel.php');
 		public function getRegisterFormHTML ($usernameErrMsg = '', $passwordErrMsg = '') {
 
 			// IF cookie with errors is set render a sertain view.
-			$usernameResponse = '';
-			$passwordResponse = '';
+			$usernameResponse = Strings::$emptyString;
+			$passwordResponse = Strings::$emptyString;
 
 			// TODO: Breake this out to a function that takes $xErrMsg and $xResponse as params.
-			if ($usernameErrMsg != '') {
+			if ($usernameErrMsg != Strings::$emptyString) {
 					
 				$usernameResponse = '<p>' . $usernameErrMsg . '</p>';
 			}
 
-			if ($passwordErrMsg != '') {
+			if ($passwordErrMsg != Strings::$emptyString) {
 
 				$passwordResponse = '<p>' . $passwordErrMsg . '</p>';
 			}
@@ -84,18 +94,18 @@ require_once(ModelPath.DS.'SessionModel.php');
 			}
 			else if ($numberOfErrors === 1) {
 
-				if (array_key_exists('username', $errorMessages)) {
+				if (array_key_exists(Strings::$username, $errorMessages)) {
 					
-					$registerHTML = $this->getRegisterFormHTML($errorMessages['username'], '');
+					$registerHTML = $this->getRegisterFormHTML($errorMessages[Strings::$username], Strings::$emptyString);
 				}
 				else {
 
-					$registerHTML = $this->getRegisterFormHTML('', $errorMessages['password']);	
+					$registerHTML = $this->getRegisterFormHTML(Strings::$emptyString, $errorMessages[Strings::$password]);	
 				}
 			}
 			else {
 
-				$registerHTML = $this->getRegisterFormHTML($errorMessages['username'], $errorMessages['password']);
+				$registerHTML = $this->getRegisterFormHTML($errorMessages[Strings::$username], $errorMessages[Strings::$password]);
 			}
 
 			echo $this->mainView->echoHTML($registerHTML);
@@ -103,41 +113,41 @@ require_once(ModelPath.DS.'SessionModel.php');
 
 		public function renderLogoutView ($isDefaultLogout = true) {
 
-			$isDefaultLogout ? $this->RenderLoginForm(self::$logOutSuccessMessage)
-							 : $this->RenderLoginForm(self::$corruptCookieLogoutMessage);
+			$isDefaultLogout ? $this->RenderLoginForm(Strings::$logOutSuccessMessage)
+							 : $this->RenderLoginForm(Strings::$corruptCookieLogoutMessage);
 		}
 
 		public function getUsername () {
 
 			// Is called from LoginController
-			if (isset($_POST['username'])) {
+			if (isset($_POST[Strings::$username])) {
 				
-				return $_POST['username'];
+				return $_POST[Strings::$username];
 			}
 		}
 
 		public function getPassword () {
 
 			// Is called from LoginController
-			if (isset($_POST['password'])) {
+			if (isset($_POST[Strings::$password])) {
 				
-				return ($_POST['password'] == null || strlen($_POST['password']) < 6) ? '' :
-						hash('sha256', $_POST['password']);
+				return ($_POST[Strings::$password] == null || strlen($_POST[Strings::$password]) < 6) ? Strings::$emptyString :
+						hash(Strings::$hashType, $_POST[Strings::$password]);
 			}
 		}
 
 		protected function getConfirmedPassword () {
 
-			if (isset($_POST['confirmpassword'])) {
+			if (isset($_POST[Strings::$confirmpassword])) {
 				
-				return ($_POST['confirmpassword'] == null || strlen($_POST['confirmpassword']) < 6) ? '' :
-						hash('sha256', $_POST['confirmpassword']);
+				return ($_POST[Strings::$confirmpassword] == null || strlen($_POST[Strings::$confirmpassword]) < 6) ? Strings::$emptyString :
+						hash(Strings::$hashType, $_POST[Strings::$confirmpassword]);
 			}
 		}
 
 		public function userPressRegisterButton () {
 
-			return isset($_POST['submit']);
+			return isset($_POST[Strings::$postSubmitString]);
 		}
 
 		public function validate () {
@@ -153,19 +163,19 @@ require_once(ModelPath.DS.'SessionModel.php');
 
 			if ($this->userExist($username)) {
 				
-				$errorMessages['username'] = self::$userExistErrorMessage;
+				$errorMessages[Strings::$username] = Strings::$userExistErrorMessage;
 				$this->sessionModel->setUsernameInputValue($username);
 			}
 
 			if ($username == null || strlen($username) < 3) {
 
-				$errorMessages['username'] = self::$usernameErrorMessage;
+				$errorMessages[Strings::$username] = Strings::$usernameErrorMessage;
 				$this->sessionModel->setUsernameInputValue($username);
 			} 
 			
-			else if (strpbrk($username, '<>""./') !== false) {
+			else if (strpbrk($username, Strings::$invalidChars) !== false) {
 
-				$errorMessages['username'] = self::$badCharsErrorMessage;
+				$errorMessages[Strings::$username] = Strings::$badCharsErrorMessage;
 				$cleanUsername = strip_tags($username);
 				$this->sessionModel->setUsernameInputValue($cleanUsername);
 			}
@@ -174,9 +184,9 @@ require_once(ModelPath.DS.'SessionModel.php');
 			if ($password === '') {
 
 				// TODO: Break this code out in a separate function
-				$errorMessages['password'] = self::$passwordErrorMessage;
+				$errorMessages[Strings::$password] = Strings::$passwordErrorMessage;
 
-				if (strpbrk($username, '<>""./') !== false) {
+				if (strpbrk($username, Strings::$invalidChars) !== false) {
 					
 					$cleanUsername = strip_tags($username);
 					$this->sessionModel->setUsernameInputValue($cleanUsername);
@@ -190,9 +200,9 @@ require_once(ModelPath.DS.'SessionModel.php');
 			else if ($confirmedPassword !== $password) {
 
 				// TODO: Break this code out in a separate function
-				$errorMessages['password'] = self::$passwordsNotMatchingErrorMessage;
+				$errorMessages[Strings::$password] = Strings::$passwordsNotMatchingErrorMessage;
 
-				if (strpbrk($username, '<>""./') !== false) {
+				if (strpbrk($username, Strings::$invalidChars) !== false) {
 					
 					$cleanUsername = strip_tags($username);
 					$this->sessionModel->setUsernameInputValue($cleanUsername);
@@ -201,7 +211,7 @@ require_once(ModelPath.DS.'SessionModel.php');
 
 					$this->sessionModel->setUsernameInputValue($username);
 				}
-				// return self::$passwordsNotMatchingErrorMessage;
+				// return Strings::$passwordsNotMatchingErrorMessage;
 			}
 
 
@@ -216,8 +226,8 @@ require_once(ModelPath.DS.'SessionModel.php');
 		public function getLoginErrorMessage () {
 
 			$errorMessage;
-			$_SESSION['LoginValues']['username'] = $this->GetUsername();
+			$_SESSION[Strings::$loginValuesSessionIndex][Strings::$username] = $this->GetUsername();
 
-			return self::$loginErrorMessage;
+			return Strings::$loginErrorMessage;
 		}
 	}

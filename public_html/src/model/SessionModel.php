@@ -1,9 +1,15 @@
 <?php
 
-
 class SessionModel {
-    private $sessionLocation = "LoggedIn";
-    private $sessionUsername = "Username";
+    private static $sessionLocation = "LoggedIn";
+    private static $sessionUsername = "Username";
+    private static $inputValues = "RegisterValues";
+    private static $username = "username";
+    private static $message = "message";
+    private static $httpServerUserAgent = "HTTP_USER_AGENT";
+    private static $httpSessionUserAgent = "httpAgent";
+    private static $headerRedirectString = "Location: index.php";
+    private static $emptyString = '';
 
     public function __construct() {
         // NOTE - implement stuff.
@@ -12,19 +18,22 @@ class SessionModel {
     // Checks the credentials, if correct the LoggedIn session is set to true.
     public function doLogin($username) {
 
-        $_SESSION[$this->sessionLocation] = true;
-        $_SESSION[$this->sessionUsername] = $username;
-        //$_SESSION["httpAgent"] = $_SERVER["HTTP_USER_AGENT"];
+        $_SESSION[Strings::$sessionLocation] = true;
+        $_SESSION[Strings::$sessionUsername] = $username;
     }
 
     // When a user wants to logout, the session is returned to be null.
-    public function doLogout() {
-        $_SESSION[$this->sessionLocation] = null;
+    public function doLogout($message = '') {
+
+        $_SESSION[Strings::$sessionLocation] = null;
+        $this->save($message);
+        header(Strings::$headerRedirectString);
+        exit;
     }
 
     // Function for checking if a user is currently logged in or not.
-    public function getLoginStatus() {
-        if(!(isset($_SESSION[$this->sessionLocation])) || $_SESSION[$this->sessionLocation] === false)
+    public function isLoggedIn() {
+        if(!(isset($_SESSION[Strings::$sessionLocation])) || $_SESSION[Strings::$sessionLocation] === false)
         {
             return false;
         }
@@ -34,36 +43,64 @@ class SessionModel {
         }
     }
 
-    // Function for retrieving the username of the user currently logged in.
     public function retriveUsername() {
-        return $_SESSION[$this->sessionUsername];
+
+        return $_SESSION[Strings::$sessionUsername];
     }
 
-    // Do note that I'm just using fake data here. When working with real data this will be of much more use.
-    // Then a username can be sent in, the token located in the DB and returned.
-    public function retriveToken($username) {
-        //if($username == "Admin" && $this->getLoginStatus() == true)
-        //{
-            return "fsdfsf2uy39fy392f923oif23";
-        //}
-    }
-
-    // sb222rf
     public function setUsernameInputValue ($value) {
 
-        $_SESSION['RegisterValues']['username'] = $value;
+        $_SESSION[Strings::$inputValues][Strings::$username] = $value;
     }
 
     public function resetUsernameInputValue () {
 
-        $_SESSION['RegisterValues']['username'] = '';
+        $_SESSION[Strings::$inputValues][Strings::$username] = Strings::$emptyString;
     }
 
     public function getUsernameInputValue () {
 
-        $userNameInputValue = isset($_SESSION['RegisterValues']['username']) ? $_SESSION['RegisterValues']['username'] : '';
+        $userNameInputValue = isset($_SESSION[Strings::$inputValues][Strings::$username]) ?
+                                    $_SESSION[Strings::$inputValues][Strings::$username] : Strings::$emptyString;
+
         $this->resetUsernameInputValue();
 
         return $userNameInputValue;
+    }
+
+    public function sessionStolen () {
+
+        return $_SESSION[Strings::$httpSessionUserAgent] !== $_SERVER[Strings::$httpServerUserAgent];
+    }
+
+    public function throwOutUser () {
+
+        $_SESSION[Strings::$sessionLocation] = null;
+        unset($_SESSION[Strings::$httpSessionUserAgent]);
+        header(Strings::$headerRedirectString);
+        exit;
+    }
+
+    // These functions were originally located in a MessageView class that now is deleted.
+    // Function for saving a message to the session.
+    public function save($string) {
+        $_SESSION[Strings::$message] = $string;
+    }
+
+    // Function for retrieving the message, present it, and delete it.
+    public function load() {
+        if(isset($_SESSION[Strings::$message]))
+        {
+            $ret = $_SESSION[Strings::$message];
+
+        }
+        else
+        {
+            $ret = Strings::$emptyString;
+        }
+
+        $_SESSION[Strings::$message] = Strings::$emptyString;
+
+        return $ret;
     }
 }

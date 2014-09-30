@@ -1,46 +1,140 @@
 <?php
 
-require_once("src/view/MessageView.php");
-
 class LoginView {
-    private $sessionModel;
-    private $messages;
 
-    public function __construct(SessionModel $sessionModel)
-    {
+    private $sessionModel;
+
+    private static $usernameResponseMessage = "Användarnamn saknas.";
+    private static $usernamePasswordMessage = "Lösenord saknas.";
+    private static $loginSuccessMessage = "Inloggning lyckades.";
+    private static $logoutSuccessMessage = "Du har nu loggat ut.";
+    private static $cookieLoginSuccessMessage = "Inloggning lyckades via cookies.";
+    private static $rememberMeSuccessMessage = "Inloggning lyckades och vi kommer ihåg dig nästa gång.";
+    private static $registerSuccessMessage = "Registrering av ny användare lyckades.";
+    private static $cookieManipulationErrorMessage = "Felaktig information i cookie.";
+    private static $AuthenticationErrorMessage = "Felaktigt användarnamn och/eller lösenord.";
+    private static $hashType = 'sha256';
+    private static $headerRedirectString = "Location: index.php";
+    private static $emptyString = '';
+    private static $username = "username";
+    private static $passwordPostIndex = "password";
+    private static $stayLoggedInPostIndex = "stayLoggedIn";
+    private static $loginButtonPostIndex = "loginButton";
+    private static $registerGetIndex = "registrera";
+    private static $logoutGetIndex = "logout";
+    private static $httpSessionUserAgent = "httpAgent";
+    private static $httpServerUserAgent = "HTTP_USER_AGENT";
+    private static $typeStringException = "Parameter must be of type string.";
+
+    public function __construct(SessionModel $sessionModel) {
         $this->sessionModel = $sessionModel;
-        $this->messages = new MessageView();
+    }
+
+    public function validates () {
+
+        $validates = true;
+
+        if ($this->getPostedUsername() == Strings::$emptyString) {
+
+            $this->sessionModel->save(Strings::$usernameResponseMessage);
+            $validates = false;
+        }
+        else if ($this->getPostedPassword() == Strings::$emptyString) {
+
+            $this->sessionModel->save(Strings::$usernamePasswordMessage);
+            $validates = false;
+        }
+
+        return $validates;
+    }
+
+    public function redirectToMemberArea (CookieStorageView $autoLogin, $isAutoLogin = false) {
+
+        $successMessage = $isAutoLogin ? Strings::$rememberMeSuccessMessage :
+                                        Strings::$loginSuccessMessage;
+
+        if (!$this->sessionModel->isLoggedIn() && $autoLogin->autoLoginApproved()) {
+
+            $successMessage = Strings::$cookieLoginSuccessMessage;
+            $this->sessionModel->doLogin($autoLogin->getUsername());
+        }
+
+        $this->sessionModel->save($successMessage);
+        header(Strings::$headerRedirectString);
+        exit;
+    }
+
+    public function redirectToRegisterSuccess () {
+
+        $this->sessionModel->save(Strings::$registerSuccessMessage);
+        header(Strings::$headerRedirectString);
+    }
+
+    public function throwOutUser (CookieStorageView $autoLogin, $messageExist = true) {
+
+        if (!is_bool($messageExist)) {
+
+            throw new \Exception(Strings::$typeStringException);
+        }
+
+        if ($messageExist) {
+            
+            $this->sessionModel->save(Strings::$cookieManipulationErrorMessage);
+        }
+
+        $autoLogin->autoLoginCookieRemove();
+    }
+
+    public function saveAuthErrorMsg () {
+
+        $this->saveMessage(Strings::$AuthenticationErrorMessage);
+    }
+
+    public function saveMessage ($message) {
+
+        if (!is_string($message)) {
+            
+            throw new \Exception(Strings::$typeStringException);
+        }
+
+        $this->sessionModel->save($message);
+    }
+
+    public function doLogout () {
+
+        $this->sessionModel->doLogout(Strings::$logoutSuccessMessage);
     }
 
     public function getPostedUsername () {
 
-        if (isset($_POST['username'])) {
+        if (isset($_POST[Strings::$username])) {
             
-            return $_POST["username"];
+            return $_POST[Strings::$username];
         }
     }
 
     public function getPostedPassword () {
 
-        if (isset($_POST['password'])) {
+        if (isset($_POST[Strings::$passwordPostIndex])) {
             
-            return $_POST['password'] === '' ? '' : hash("sha256" ,$_POST['password']);
+            return $_POST[Strings::$passwordPostIndex] === Strings::$emptyString ? Strings::$emptyString : 
+                                            hash(Strings::$hashType ,$_POST[Strings::$passwordPostIndex]);
         }
     }
 
     public function rememberMe () {
 
-        return isset($_POST["stayLoggedIn"]);
+        return isset($_POST[Strings::$stayLoggedInPostIndex]);
     }
 
     public function registerUser() {
 
-        return isset($_GET['registrera']);
+        return isset($_GET[Strings::$registerGetIndex]);
     }
 
     // Checks if the user has pressed the login button.
     public function onClickLogin() {
-        if(isset($_POST["loginButton"]))
+        if(isset($_POST[Strings::$loginButtonPostIndex]))
         {
             return true;
         }
@@ -52,7 +146,7 @@ class LoginView {
 
     // Checks if the user has pressed the logout button.
     public function onClickLogout() {
-        if(isset($_GET['logout']))
+        if(isset($_GET[Strings::$logoutGetIndex]))
         {
           return true;
         }
@@ -63,7 +157,7 @@ class LoginView {
     }
 
     public function sessionCheck() {
-        if ($_SESSION["httpAgent"] != $_SERVER["HTTP_USER_AGENT"])
+        if ($_SESSION[Strings::$httpSessionUserAgent] != $_SERVER[Strings::$httpServerUserAgent])
         {
             return false;
         }
@@ -74,13 +168,13 @@ class LoginView {
     // Renders the page according to the user being logged in or not.
     public function showPage() {
 
-        if($this->sessionModel->getLoginStatus() === false || $this->sessionCheck() === false)
+        if($this->sessionModel->isLoggedIn() === false || $this->sessionCheck() === false)
         {
-            $username = isset($_POST["username"]) ? $_POST["username"] : "";
+            $username = isset($_POST[Strings::$username]) ? $_POST[Strings::$username] : Strings::$emptyString;
 
             $registeredUser = $this->sessionModel->getUsernameInputValue();
 
-            if ($registeredUser != '') {
+            if ($registeredUser != Strings::$emptyString) {
                 
                 $username = $registeredUser;
             }
@@ -91,7 +185,7 @@ class LoginView {
             <form action='?login' method='post' name='loginForm'>
                 <fieldset>
                     <legend>Login - Skriv in användarnamn och lösenord</legend><p>"
-                    . $this->messages->load() . "</p>
+                    . $this->sessionModel->load() . "</p>
                     <label><strong>Användarnamn: </strong></label>
                     <input type='text' name='username' value='$username' />
                     <label><strong>Lösenord: </strong></label>
@@ -106,7 +200,7 @@ class LoginView {
         {
             return "<h1>Välkommen!</h1>
                     <h3>" . $this->sessionModel->retriveUsername() . " är inloggad</h3>
-                    <p>" . $this->messages->load() . "</p>
+                    <p>" . $this->sessionModel->load() . "</p>
                     <a href='?logout'>Logga ut</a>";
         }
     }
