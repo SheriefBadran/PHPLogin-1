@@ -24,6 +24,7 @@
 	    public static $httpSessionUserAgent = "httpAgent";
 	    public static $httpServerUserAgent = "HTTP_USER_AGENT";
 	    public static $typeStringException = "Parameter must be of type string.";
+	    public static $typeBoolException = "Second parameter must be of type boolean.";
 
 	    // Specific to CookieStorageView.php
 	    public static $cookieUsername = "username";
@@ -41,9 +42,10 @@
 		public static $passwordErrorMessage = "Lösenordet har för få tecken. Minst 6 tecken.";
 		public static $passwordsNotMatchingErrorMessage = "Lösenorden matchar inte.";
 		public static $badCharsErrorMessage = "Användarnamnet innehåller ogiltiga tecken.";
-		public static $userExistErrorMessage = "Användarnamnet är redan upptaget.";    	
+		public static $userExistErrorMessage = "Användarnamnet är redan upptaget.";	
 		public static $confirmpassword = 'confirmpassword';
 		public static $postSubmitString = 'submit';
 		public static $invalidChars = '<>""./';
+		// public static $pregReplaceInvalidCharsPattern = '/\W/';
 		public static $loginValuesSessionIndex = 'LoginValues';
 	}

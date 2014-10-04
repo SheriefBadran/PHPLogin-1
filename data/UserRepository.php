@@ -37,7 +37,14 @@ require_once(ModelPath.DS.'UserModel.php');
 
 		function makeUser ($uniqueId, $username, $password) {
 
-			$user = new UserModel($uniqueId, $username, $password);
+			try {
+
+				$user = new UserModel($uniqueId, $username, $password);
+			}
+			catch (Exception $e) {
+
+				throw new \Exception('Username contains invalid characters!');
+			}
 
 			return $user;
 		}
@@ -216,16 +223,19 @@ require_once(ModelPath.DS.'UserModel.php');
 		// TODO: Maybe move this to the UserModel?
 		function generateUniqueId () {
 
+			// remember to declare $uniqueId as an array
 		    $alphabet = "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ0123456789";
-		    $uniqueId = array(); //remember to declare $uniqueId as an array
+		    $uniqueId = array(); 
 
-		    $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
+		    // put the length -1 in cache
+		    $alphaLength = strlen($alphabet) - 1; 
 
 		    for ($i = 0; $i < 20; $i++) {
 		        $n = rand(0, $alphaLength);
 		        $uniqueId[] = $alphabet[$n];
 		    }
 
-		    return implode($uniqueId); //turn the array into a string
+		    // turn the array into a string
+		    return implode($uniqueId);
 		}
 	}

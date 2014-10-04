@@ -10,7 +10,7 @@ class HTMLView {
 		$time = '[' . strftime("%H:%M:%S") . ']';
 		$year = date("Y");
 		$month = date("M");
-		$day = date("d");
+		$day = (int)(date("d"));
 
 		$sweWeekday = $this->GetSwedishWeekday(date("d"), date("M"), date("Y"));
 		$sweMonth = $this->GetSwedishMonth(strftime("%Y"), strftime("%m"), strftime("%d"));

@@ -10,21 +10,21 @@ require_once(ModelPath.DS.'SessionModel.php');
 		private $userRepository;
 
 
-		private static $usernameErrorMessage = "Användarnamnet har för få tecken. Minst 3 tecken.";
-		private static $passwordErrorMessage = "Lösenordet har för få tecken. Minst 6 tecken.";
-		private static $passwordsNotMatchingErrorMessage = "Lösenorden matchar inte.";
-		private static $badCharsErrorMessage = "Användarnamnet innehåller ogiltiga tecken.";
-		private static $userExistErrorMessage = "Användarnamnet är redan upptaget.";
-		private static $username = 'username';
-		private static $password = 'password';
-		private static $confirmpassword = 'confirmpassword';
-		private static $hashType = 'sha256';
-		private static $postSubmitString = 'submit';
-		private static $invalidChars = '<>""./';
-		private static $loginValuesSessionIndex = 'LoginValues';
+		// private static $usernameErrorMessage = "Användarnamnet har för få tecken. Minst 3 tecken.";
+		// private static $passwordErrorMessage = "Lösenordet har för få tecken. Minst 6 tecken.";
+		// private static $passwordsNotMatchingErrorMessage = "Lösenorden matchar inte.";
+		// private static $badCharsErrorMessage = "Användarnamnet innehåller ogiltiga tecken.";
+		// private static $userExistErrorMessage = "Användarnamnet är redan upptaget.";
+		// private static $username = 'username';
+		// private static $password = 'password';
+		// private static $confirmpassword = 'confirmpassword';
+		// private static $hashType = 'sha256';
+		// private static $postSubmitString = 'submit';
+		// private static $invalidChars = '<>""./';
+		// private static $loginValuesSessionIndex = 'LoginValues';
 
 
-		private static $emptyString = '';
+		// private static $emptyString = '';
 
 		function __construct () {
 
@@ -84,7 +84,13 @@ require_once(ModelPath.DS.'SessionModel.php');
 			return $this->userRepository->userExist($username);
 		}
 
-		public function renderRegisterForm (array $errorMessages) {
+		public function renderRegisterForm (array $errorMessages, $isModelStateError) {
+
+			if ($isModelStateError) {
+
+				$errorMessages[Strings::$username] = Strings::$badCharsErrorMessage;
+				$registerHTML = $this->getRegisterFormHTML($errorMessages[Strings::$username], Strings::$emptyString);
+			}
 
 			$numberOfErrors = count($errorMessages);
 
@@ -154,9 +160,6 @@ require_once(ModelPath.DS.'SessionModel.php');
 
 			$errorMessages = array();
 
-			$badCharsExist = false;
-			$cleanUsername = null;
-
 			$username = $this->getUsername();
 			$password = $this->getPassword();
 			$confirmedPassword = $this->getConfirmedPassword();
@@ -164,58 +167,39 @@ require_once(ModelPath.DS.'SessionModel.php');
 			if ($this->userExist($username)) {
 				
 				$errorMessages[Strings::$username] = Strings::$userExistErrorMessage;
-				$this->sessionModel->setUsernameInputValue($username);
 			}
 
 			if ($username == null || strlen($username) < 3) {
 
 				$errorMessages[Strings::$username] = Strings::$usernameErrorMessage;
-				$this->sessionModel->setUsernameInputValue($username);
 			} 
 			
 			else if (strpbrk($username, Strings::$invalidChars) !== false) {
 
 				$errorMessages[Strings::$username] = Strings::$badCharsErrorMessage;
-				$cleanUsername = strip_tags($username);
-				$this->sessionModel->setUsernameInputValue($cleanUsername);
+				$username = preg_replace('/\W/', '', $username);
 			}
 
 			// If password is less than 6 chars, it is converted to empty string.
 			if ($password === '') {
 
-				// TODO: Break this code out in a separate function
 				$errorMessages[Strings::$password] = Strings::$passwordErrorMessage;
-
-				if (strpbrk($username, Strings::$invalidChars) !== false) {
-					
-					$cleanUsername = strip_tags($username);
-					$this->sessionModel->setUsernameInputValue($cleanUsername);
-				}
-				else {
-
-					$this->sessionModel->setUsernameInputValue($username);
-				}
 			}
 
 			else if ($confirmedPassword !== $password) {
 
-				// TODO: Break this code out in a separate function
 				$errorMessages[Strings::$password] = Strings::$passwordsNotMatchingErrorMessage;
-
-				if (strpbrk($username, Strings::$invalidChars) !== false) {
-					
-					$cleanUsername = strip_tags($username);
-					$this->sessionModel->setUsernameInputValue($cleanUsername);
-				}
-				else {
-
-					$this->sessionModel->setUsernameInputValue($username);
-				}
-				// return Strings::$passwordsNotMatchingErrorMessage;
 			}
 
+			$this->sessionModel->setUsernameInputValue($username);
 
 			return (count($errorMessages) === 0) ? true : $errorMessages;
+		}
+
+
+		public function setUsernameInputValue ($username) {
+
+			$this->sessionModel->setUsernameInputValue($username);
 		}
 
 		public function resetFormInputFields () {

@@ -2,7 +2,7 @@
 
 require_once('../data/pathConfig.php');
 require_once(HelperPath.DS.'Strings.php');
-require_once(HelperPath.DS.'HTMLView.php');
+require_once(HelperPath.DS.'HTMLview.php');
 require_once(ControllerPath.DS.'LoginController.php');
 
 session_start();

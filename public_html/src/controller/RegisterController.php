@@ -28,7 +28,18 @@ require_once(HelperPath.DS.'UserRepository.php');
 					$username = $this->registerView->getUsername();
 					$password = $this->registerView->getPassword();
 
-					$newUser = $this->userRepository->makeUser($uniqueId, $username, $password);
+					try {
+
+						$newUser = $this->userRepository->makeUser($uniqueId, $username, $password);
+					}
+					catch (Exception $e) {
+
+						$result = array();
+						$this->registerView->setUsernameInputValue($username);
+						$this->registerView->renderRegisterForm($result, true);
+						exit;
+					}
+
 					$this->userRepository->createUser($newUser);
 					
 					$this->registerView->resetFormInputFields();
@@ -36,21 +47,17 @@ require_once(HelperPath.DS.'UserRepository.php');
 				}
 				else {
 
-					$this->registerView->renderRegisterForm($result);
+					$this->registerView->renderRegisterForm($result, false);
 					$this->registerView->resetFormInputFields();
 					return false;
 				}
-
-				// else render success view.
-
-
 
 				$this->registerView->resetFormInputFields();
 				return false;
 				// exit;
 			}
 
-			$this->registerView->renderRegisterForm($result);
+			$this->registerView->renderRegisterForm($result, false);
 			$this->registerView->resetFormInputFields();
 		}
 	}

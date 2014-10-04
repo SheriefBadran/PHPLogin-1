@@ -1,15 +1,16 @@
 <?php
 
 class SessionModel {
-    private static $sessionLocation = "LoggedIn";
-    private static $sessionUsername = "Username";
-    private static $inputValues = "RegisterValues";
-    private static $username = "username";
-    private static $message = "message";
-    private static $httpServerUserAgent = "HTTP_USER_AGENT";
-    private static $httpSessionUserAgent = "httpAgent";
-    private static $headerRedirectString = "Location: index.php";
-    private static $emptyString = '';
+    
+    // private static $sessionLocation = "LoggedIn";
+    // private static $sessionUsername = "Username";
+    // private static $inputValues = "RegisterValues";
+    // private static $username = "username";
+    // private static $message = "message";
+    // private static $httpServerUserAgent = "HTTP_USER_AGENT";
+    // private static $httpSessionUserAgent = "httpAgent";
+    // private static $headerRedirectString = "Location: index.php";
+    // private static $emptyString = '';
 
     public function __construct() {
         // NOTE - implement stuff.

@@ -9,8 +9,13 @@
 
 		public function __construct ($uniqueId, $username, $password) {
 
+			if (preg_match('/\W/', $username) === 1) {
+
+				throw new \Exception('Username contains invalid characters.');
+			}
+
 			$this->uniqueId = $uniqueId;
-			$this->username = $username;
+			$this->username = preg_replace('/\W/', '', $username);
 			$this->password = $password;
 		}
 
