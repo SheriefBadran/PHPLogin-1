@@ -9,23 +9,6 @@ require_once(ModelPath.DS.'SessionModel.php');
 		private $sessionModel;
 		private $userRepository;
 
-
-		// private static $usernameErrorMessage = "Användarnamnet har för få tecken. Minst 3 tecken.";
-		// private static $passwordErrorMessage = "Lösenordet har för få tecken. Minst 6 tecken.";
-		// private static $passwordsNotMatchingErrorMessage = "Lösenorden matchar inte.";
-		// private static $badCharsErrorMessage = "Användarnamnet innehåller ogiltiga tecken.";
-		// private static $userExistErrorMessage = "Användarnamnet är redan upptaget.";
-		// private static $username = 'username';
-		// private static $password = 'password';
-		// private static $confirmpassword = 'confirmpassword';
-		// private static $hashType = 'sha256';
-		// private static $postSubmitString = 'submit';
-		// private static $invalidChars = '<>""./';
-		// private static $loginValuesSessionIndex = 'LoginValues';
-
-
-		// private static $emptyString = '';
-
 		function __construct () {
 
 			$this->mainView = new HTMLView();

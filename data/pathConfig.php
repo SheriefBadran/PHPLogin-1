@@ -33,11 +33,6 @@
 
 	require_once(HelperPath.DS.'DatabaseAccessModel.php');
 	require_once(HelperPath.DS.'UserRepository.php');
-	// require_once(HelperPath.DS.'HTMLview.php');
-
-	// require database model (helper)
-	// require_once(HelperPath.DS.'SessionModel.php');
-	// require_once(HelperPath.DS.'Database.php');
 
 	// REQUIRE MODELS
 	require_once(ModelPath.DS.'UserModel.php');

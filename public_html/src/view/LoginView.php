@@ -4,28 +4,6 @@ class LoginView {
 
     private $sessionModel;
 
-    // private static $usernameResponseMessage = "Användarnamn saknas.";
-    // private static $usernamePasswordMessage = "Lösenord saknas.";
-    // private static $loginSuccessMessage = "Inloggning lyckades.";
-    // private static $logoutSuccessMessage = "Du har nu loggat ut.";
-    // private static $cookieLoginSuccessMessage = "Inloggning lyckades via cookies.";
-    // private static $rememberMeSuccessMessage = "Inloggning lyckades och vi kommer ihåg dig nästa gång.";
-    // private static $registerSuccessMessage = "Registrering av ny användare lyckades.";
-    // private static $cookieManipulationErrorMessage = "Felaktig information i cookie.";
-    // private static $AuthenticationErrorMessage = "Felaktigt användarnamn och/eller lösenord.";
-    // private static $hashType = 'sha256';
-    // private static $headerRedirectString = "Location: index.php";
-    // private static $emptyString = '';
-    // private static $username = "username";
-    // private static $passwordPostIndex = "password";
-    // private static $stayLoggedInPostIndex = "stayLoggedIn";
-    // private static $loginButtonPostIndex = "loginButton";
-    // private static $registerGetIndex = "registrera";
-    // private static $logoutGetIndex = "logout";
-    // private static $httpSessionUserAgent = "httpAgent";
-    // private static $httpServerUserAgent = "HTTP_USER_AGENT";
-    // private static $typeStringException = "Parameter must be of type string.";
-
     public function __construct(SessionModel $sessionModel) {
         $this->sessionModel = $sessionModel;
     }

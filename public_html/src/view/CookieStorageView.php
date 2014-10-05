@@ -4,12 +4,6 @@ require_once(HelperPath.DS.'UserRepository.php');
 
 class CookieStorageView {
 
-    // private static $cookieUsername = "username";
-    // private static $cookieToken = "token";
-    // private static $emptyString = "";
-    // private static $exptime = 20; // 60*60*24*30
-
-
     public function cookieUsernameIsSet () {
 
         return isset($_COOKIE[Strings::$cookieUsername]);

@@ -46,6 +46,5 @@
 		public static $confirmpassword = 'confirmpassword';
 		public static $postSubmitString = 'submit';
 		public static $invalidChars = '<>""./';
-		// public static $pregReplaceInvalidCharsPattern = '/\W/';
 		public static $loginValuesSessionIndex = 'LoginValues';
 	}
